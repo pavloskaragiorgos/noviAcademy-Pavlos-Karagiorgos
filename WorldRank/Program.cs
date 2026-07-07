@@ -1,93 +1,81 @@
-﻿List<Player> players = new List<Player>() ;
+﻿using WorldRank;
+
+var players = new List<Player>();
 
 while (true)
 {
-    Console.WriteLine("\n--- Player Menu ---");
+    Console.WriteLine("\n=== WorldRank Player Registry ===");
     Console.WriteLine("1. Add player");
-    Console.WriteLine("2. List players");
-    Console.WriteLine("3. Find by name");
-    Console.WriteLine("4. Exit");
-    Console.Write("Choose an option: ");
+    Console.WriteLine("2. List all players");
+    Console.WriteLine("3. Find player by name");
+    Console.WriteLine("0. Exit");
+    Console.Write("> ");
 
-    string? choice = Console.ReadLine();
-
-    switch (choice)
+    Action? action = Console.ReadLine() switch
     {
-        case "1":
-            AddPlayer(players);
-            break;
-        case "2":   
-            ListPlayers(players); 
-            break;
-        case "3":
-            FindPlayerByName(players); 
-            break;
-        case "4":
-            Console.WriteLine("Exiting...");
-            return;
-        default:
-            Console.WriteLine("Invalid option, try again.");
-            break;
-    }
+        "1" => AddPlayer,
+        "2" => ListPlayers,
+        "3" => FindPlayer,
+        "0" => null,
+        _ => () => Console.WriteLine("Unknown option.")
+    };
+
+    if (action is null)
+        return; // "0" selected — exit
+
+    action();
 }
 
-static void AddPlayer(List<Player> players)
+void AddPlayer()
 {
-    Console.WriteLine("Give Player Name: ");
-    string? name = Console.ReadLine();
+    Console.Write("Name: ");
+    var name = Console.ReadLine();
     if (string.IsNullOrWhiteSpace(name))
     {
-        Console.WriteLine("Invalid input.");
+        Console.WriteLine("Name cannot be empty.");
         return;
     }
-    players.Add(new Player(name));
+
+    Console.Write("Score: ");
+    var scoreInput = Console.ReadLine();
+    if (!int.TryParse(scoreInput, out var score))
+    {
+        Console.WriteLine("Score must be a whole number.");
+        return;
+    }
+
+    var player = new Player(name);
+    player.UpdateScore(score);
+
+    players.Add(player);
+    Console.WriteLine("Player added successfully.");
 }
 
-static void ListPlayers(List<Player> players)
+void ListPlayers()
 {
     if (players.Count == 0)
     {
-        Console.WriteLine("No players found.");
+        Console.WriteLine("No players registered.");
         return;
     }
-    Console.WriteLine("\n--- Player List --- \n");
-    foreach (var player in players)
-    {
-        Console.WriteLine($"ID: {player.Id}, Name: {player.Name}, Score: {player.Score}");
-    }
+
+    foreach (var p in players)
+        Console.WriteLine(p);
 }
 
-static void FindPlayerByName(List<Player> players)
+void FindPlayer()
 {
-    if (players.Count == 0)
+    Console.Write("Search by name: ");
+    var term = Console.ReadLine() ?? string.Empty;
+
+    var player = players
+            .FirstOrDefault(p => p.Name.Equals(term, StringComparison.OrdinalIgnoreCase));
+
+    if (player is null)
     {
-        Console.WriteLine("No players found.");
+        Console.WriteLine("No player found.");
         return;
     }
 
-    Console.WriteLine("Enter player name to search: ");
-    string? name = Console.ReadLine();
-    if(string.IsNullOrWhiteSpace(name))
-    {
-        Console.WriteLine("Invalid input.");
-        return;
-    }
-
-    var matches = players.Where(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase)).ToList();
-    if (matches.Count == 0)
-    {
-
-        Console.WriteLine("No player found with that name.");
-        return;
-    }
-    Console.WriteLine(" Player(s) found: ");
-    foreach (var player in matches)
-    {
-        Console.WriteLine($"ID: {player.Id}, Name: {player.Name}, Score: {player.Score}");
-    }
-
+    Console.WriteLine(player);
 }
-
-
-
-
