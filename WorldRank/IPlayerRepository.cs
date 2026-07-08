@@ -7,8 +7,9 @@ namespace WorldRank
     interface IPlayerRepository
     {
         public void AddPLayer(Player player);
-        public void DeletePLayer(Player player);
-        public Player FindPlayer(Guid id);
+        public void DeletePLayer(Guid playerId);
+        public Player FindPlayer(Guid playerId);
+
 
     }
 }

@@ -2,7 +2,7 @@ using System.ComponentModel;
 
 interface IWalletRepository
 {
-    public void Add(Wallet wallet, int playerId);
-    public List<Wallet> GetByPlayer(int playerId); 
+    public void Add(Wallet wallet, Guid playerId);
+    public List<Wallet> GetByPlayer(Guid playerId); 
 
 }

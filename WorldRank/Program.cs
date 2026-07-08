@@ -1,6 +1,8 @@
 ﻿using WorldRank;
 
 var players = new List<Player>();
+IWalletRepository walletRepository = new InMemoryWalletRepository(players);
+IPlayerRepository playerRepository = new InMemoryPlayerRepository(players);
 
 while (true)
 {
@@ -8,6 +10,8 @@ while (true)
     Console.WriteLine("1. Add player");
     Console.WriteLine("2. List all players");
     Console.WriteLine("3. Find player by name");
+    Console.WriteLine("4. Add Wallet to player");
+    Console.WriteLine("5. Get Player Wallets");
     Console.WriteLine("0. Exit");
     Console.Write("> ");
 
@@ -47,7 +51,7 @@ void AddPlayer()
     var player = new Player(name);
     player.UpdateScore(score);
 
-    players.Add(player);
+    playerRepository.AddPLayer(player);
     Console.WriteLine("Player added successfully.");
 }
 
@@ -79,3 +83,4 @@ void FindPlayer()
 
     Console.WriteLine(player);
 }
+

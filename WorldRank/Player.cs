@@ -3,7 +3,7 @@ namespace WorldRank;
 public class Player : IPlayer
 {
 
-    Dictionary<Currency, Wallet> wallets;
+    public Dictionary<Currency, Wallet> Wallets { get; set; } = new Dictionary<Currency, Wallet>();
 
     public Guid Id { get; }
 
@@ -18,7 +18,6 @@ public class Player : IPlayer
 
         Id = Guid.NewGuid();
         Name = name;
-        wallets = new Dictionary<string, Wallet>();
     }
 
     public void UpdateScore(int newScore)
@@ -32,11 +31,11 @@ public class Player : IPlayer
     public override string ToString() =>
             $"[{Id}] {Name} - Score: {Score}";
 
-    public void AddWallet(string currency, Wallet wallet)
+    public void AddWallet(Currency currency, Wallet wallet)
     {
-        if (wallets.ContainsKey(currency))
+        if (Wallets.ContainsKey(currency))
             throw new InvalidOperationException($"Wallet for currency {currency} already exists.");
-        wallets[currency] = wallet;
+        Wallets[currency] = wallet;
         wallet.addPlayerId(Id);
     }
 

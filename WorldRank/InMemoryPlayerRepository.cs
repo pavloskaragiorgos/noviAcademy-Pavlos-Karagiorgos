@@ -6,27 +6,26 @@ namespace WorldRank
 {
     public class InMemoryPlayerRepository : IPlayerRepository
     {
-        Dictionary<Guid,Player> _players;
-        public InMemoryPlayerRepository()
+        private List<Player> _players;
+        public InMemoryPlayerRepository(List<Player> players)
         {
-            _players = new Dictionary<Guid, Player>();
+            _players = players ;
         }
         public void AddPLayer(Player player)
         {
-            _players.Add(player.Id, player);
+            _players.Add(player);
         }
-        public void DeletePLayer(Player player)
+        public void DeletePLayer(Guid playerId)
         {
-            _players.Remove(player.Id);
+            var playerToDelete = _players.Where(item => item.Id == playerId).FirstOrDefault();
+            if (playerToDelete != null) 
+                _players.Remove(playerToDelete);
         }
-        public Player FindPlayer(Guid id)
+        public Player FindPlayer(Guid playerId)
         {
-            if(_players.Count == 0) 
-            {
-                throw new Exception("No players found in the repository.");
-            }
-            return _players[id];
+            return _players.Where(item => item.Id == playerId).FirstOrDefault();
         }
+
 
         
     }
