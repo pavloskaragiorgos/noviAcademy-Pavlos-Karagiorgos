@@ -1,5 +1,11 @@
-﻿using WorldRank.Console;
+﻿using NLog;
+using WorldRank.Console;
 using WorldRank.Console.Enums;
+using WorldRank.Exceptions;
+
+var logger = LogManager.GetCurrentClassLogger();
+
+logger.Info("App started");
 
 var players = new List<Player>();
 var nextId = 1;
@@ -15,6 +21,7 @@ while (true)
 	Console.WriteLine("3. Find player by name");
 	Console.WriteLine("4. Add Wallet to player");
 	Console.WriteLine("5. Get Player Wallets");
+	Console.WriteLine("6. Withdraw from Wallet");
 	Console.WriteLine("0. Exit");
 	Console.Write("> ");
 
@@ -26,6 +33,7 @@ while (true)
 		//New functionality
 		"4" => AddWalletToPlayer,
 		"5" => GetWalletOfPlayer,
+		"6" => WithdrawFromWallet,
 		"0" => null,
 		_ => () => Console.WriteLine("Unknown option.")
 	};
@@ -35,6 +43,11 @@ while (true)
 
 	action();
 }
+
+logger.Warn("This is a warning");
+logger.Error("Something broke");
+
+LogManager.Shutdown(); // flushes file writes before exit
 
 #region Player Methods
 
@@ -177,6 +190,52 @@ void GetWalletOfPlayer()
 	{
 		Console.Write("Id not a number");
 	}
+}
+
+void WithdrawFromWallet()
+{
+    Console.Write("Give player id: ");
+    var id = Console.ReadLine();
+    if (int.TryParse(id, out var playerId))
+    {
+        var wallets = walletRepository.GetByPlayer(playerId);
+        foreach (var wallet in wallets)
+        {
+            Console.WriteLine($"Wallet Number {wallets.IndexOf(wallet)} {wallet.ToString()}");
+        }
+        Console.Write("Select wallet number to withdraw from: ");
+        var walletNumberInput = Console.ReadLine();
+        if (int.TryParse(walletNumberInput, out var walletNumber) && walletNumber >= 0 && walletNumber < wallets.Count)
+        {
+            var selectedWallet = wallets[walletNumber];
+            Console.Write("Enter amount to withdraw: ");
+            var amountInput = Console.ReadLine();
+            if (decimal.TryParse(amountInput, out var amount))
+            {
+                try
+                {
+                    selectedWallet.Withdraw(amount);
+                    Console.WriteLine($"Successfully withdrew {amount} from the wallet.");
+                }
+                catch (InsufficientFundsException ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+            }
+            else
+            {
+                Console.WriteLine("Invalid amount.");
+            }
+        }
+        else
+        {
+            Console.WriteLine("Invalid wallet number.");
+        }
+    }
+    else
+    {
+        Console.WriteLine("Id not a number");
+    }
 }
 
 #endregion Wallet Methods
