@@ -11,7 +11,7 @@
 
 		public void Add(Wallet wallet, int playerId)
 		{
-			var player = _players.Where(item => item.Id == playerId).SingleOrDefault();
+			var player = _players.Where(p => p.Id == playerId).SingleOrDefault();
 
 			if (player != null)
 			{
@@ -21,7 +21,7 @@
 
 		public List<Wallet> GetByPlayer(int playerId)
 		{
-			var wallets = _players.Where(item => item.Id == playerId).SelectMany(item => item.Wallets.Values);
+			var wallets = _players.Where(p => p.Id == playerId).SelectMany(p => p.Wallets.Values);
 			return wallets.ToList();
 		}
 	}

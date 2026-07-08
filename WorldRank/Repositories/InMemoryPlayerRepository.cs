@@ -1,4 +1,6 @@
-﻿namespace WorldRank.Console
+﻿using System.Runtime.Serialization;
+
+namespace WorldRank.Console
 {
 	public class InMemoryPlayerRepository : IPlayerRepository
 	{
@@ -16,7 +18,7 @@
 
 		public void DeletePlayer(int playerId)
 		{
-			var player = _players.Where(item => item.Id == playerId).FirstOrDefault();
+			var player = _players.Where(p => p.Id == playerId).FirstOrDefault();
 
 			if (player != null)
 			{
@@ -31,7 +33,8 @@
 
 		public IEnumerable<IGrouping<int, Player>> GroupPlayersByScore()
 		{
-			throw new NotImplementedException();
-		}
+            // Group players by score and then order the groups by score in ascending order
+            return _players.OrderBy(p => p.Score).GroupBy(p => p.Score).OrderBy(g => g.Key);
+        }
 	}
 }
