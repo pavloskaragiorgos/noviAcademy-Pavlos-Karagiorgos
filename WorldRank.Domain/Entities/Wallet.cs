@@ -1,5 +1,5 @@
-using WorldRank.Console.Enums;
-using WorldRank.Console.Exceptions;
+using WorldRank.Domain.Enums;
+using WorldRank.Domain.Exceptions;
 
 namespace WorldRank.Domain.Entities
 {
