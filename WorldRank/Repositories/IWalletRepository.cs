@@ -1,4 +1,5 @@
 using WorldRank.Console.Enums;
+using WorldRank.Domain.Entities;
 
 namespace WorldRank.Console
 {
