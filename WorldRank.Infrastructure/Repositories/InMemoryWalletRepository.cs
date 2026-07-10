@@ -4,7 +4,7 @@ using WorldRank.Domain.Exceptions;
 using WorldRank.Domain.Entities;
 using WorldRank.Application.Interfaces;
 
-namespace WorldRank.Console
+namespace WorldRank.Infrastructure.Repositories
 {
 	public class InMemoryWalletRepository : IWalletRepository
 	{
