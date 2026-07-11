@@ -25,7 +25,12 @@ namespace WorldRank.Infrastructure.Repositories
 			_logger.Info("Wallet created for player {PlayerId} in {Currency} with balance {Balance}", wallet.PlayerId, wallet.Currency, wallet.Balance);
 		}
 
-		public List<Wallet> GetAllWalletsByPlayerId(int playerId)
+        public Wallet[] GetAll()
+        {
+            return _wallets.ToArray();
+        }
+
+        public List<Wallet> GetAllWalletsByPlayerId(int playerId)
 		{
 			return _wallets.Where(item => item.PlayerId == playerId).ToList();
 		}
@@ -62,7 +67,7 @@ namespace WorldRank.Infrastructure.Repositories
 			_logger.Info("Player {PlayerId} {Currency} wallet unblocked", playerId, currency);
 		}
 
-		private Wallet GetWallet(int playerId, Currency currency)
+		public Wallet GetWallet(int playerId, Currency currency)
 		{
 			var wallet = _wallets.SingleOrDefault(item => item.PlayerId == playerId && item.Currency == currency);
 

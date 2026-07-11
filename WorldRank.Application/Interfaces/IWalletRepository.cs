@@ -6,8 +6,9 @@ namespace WorldRank.Application.Interfaces
 	public interface IWalletRepository
 	{
 		void Add(Wallet wallet);
-
-		List<Wallet> GetAllWalletsByPlayerId(int playerId);
+		Wallet[] GetAll();
+		Wallet GetWallet(int playerId, Currency currency);
+        List<Wallet> GetAllWalletsByPlayerId(int playerId);
 
 		void UpdateBalance(int playerId, Currency currency, decimal newBalance);
 
