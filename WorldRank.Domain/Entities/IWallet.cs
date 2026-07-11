@@ -4,6 +4,7 @@ namespace WorldRank.Domain.Entities
 {
 	public interface IWallet
 	{
+		int Id { get; }
 		int PlayerId { get; }
 		Currency Currency { get; }
 		decimal Balance { get; }

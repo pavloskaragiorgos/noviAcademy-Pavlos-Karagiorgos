@@ -5,18 +5,21 @@ namespace WorldRank.Domain.Entities
 {
 	public class Wallet : IWallet
 	{
+		public int Id { get; }
 		public Currency Currency { get; }
 		public int PlayerId { get; }
 		public decimal Balance { get; private set; }
 		public bool IsBlocked { get; private set; }
 
-		public Wallet(int playerId, Currency currency, decimal balance, bool isBlocked = false)
+		public Wallet(int id, int playerId, Currency currency, decimal balance, bool isBlocked = false)
 		{
 			PlayerId = playerId;
 			if (balance < 0)
 				throw new InsufficientFundsException(balance);
 
-			Balance = balance;
+			Id = id;
+            PlayerId = playerId;
+            Balance = balance;
 			Currency = currency;
 			IsBlocked = isBlocked;
 		}
@@ -65,7 +68,7 @@ namespace WorldRank.Domain.Entities
                 throw new InvalidAmountException(amount);
             if (IsBlocked)
                 throw new WalletBlockedException(Currency);
-			Balance = Balance - amount;
+			Balance -= amount ;
         }
 
 		public override string ToString() => $"Balance -> {Balance} Currency -> {Currency} IsBlocked -> {IsBlocked}";

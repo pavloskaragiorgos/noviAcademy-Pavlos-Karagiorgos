@@ -9,6 +9,7 @@ namespace WorldRank.Console
 {
     public static class DependencyInjection
     {
+        // Composition root 
         public static IServiceCollection AddWorldRank(this IServiceCollection services)
         {
             services.AddLogging(builder =>
