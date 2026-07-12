@@ -1,9 +1,14 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+using WorldRank.Application.Strategies;
 using WorldRank.Domain.Entities;
 
-namespace WorldRank.Application.Strategies;
-
-public class ForceSubtractFundsStrategy : IFundsStrategy
+namespace WorldRank.Application.Strategies
 {
-    public FundsOperation Operation => FundsOperation.ForceSubtract;
-    public void Execute(Wallet wallet, decimal amount) => wallet.ForceWithdraw(amount);
+    public class ForceSubtractFundsStrategy : IFundsStrategy
+    {
+        public FundsOperation Operation => FundsOperation.ForceSubtract;
+        public void Execute(Wallet wallet, decimal amount) => wallet.ForceWithdraw(amount);
+    }
 }
