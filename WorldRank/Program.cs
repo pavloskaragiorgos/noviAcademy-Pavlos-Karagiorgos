@@ -1,12 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using NLog;
-using WorldRank.Application.Interfaces;
-using WorldRank.Application.Services;
 using WorldRank.Console;
-using WorldRank.Domain.Entities;
-using WorldRank.Domain.Enums;
-using WorldRank.Domain.Exceptions;
-using WorldRank.Infrastructure.Repositories;
+using WorldRank.Console.Services;
 
 var logger = LogManager.GetCurrentClassLogger();
 
@@ -15,8 +10,8 @@ services.AddWorldRank();
 
 using var provider = services.BuildServiceProvider();
 
-var playerService = provider.GetRequiredService<PlayerService>();
-var walletService = provider.GetRequiredService<WalletService>();
+var playerMenu = provider.GetRequiredService<PlayerMenu>();
+var walletMenu = provider.GetRequiredService<WalletMenu>();
 
 logger.Info("Application started.");
 
@@ -44,20 +39,20 @@ while (true)
 
     Action? action = Console.ReadLine() switch
     {
-        "1" => playerService.AddPlayer,
-        "2" => playerService.ListPlayers,
-        "3" => playerService.ListPlayersByScore,
-        "4" => playerService.FindPlayerByName,
-        "5" => playerService.FindPlayerById,
-        "6" => playerService.DeletePlayer,
-        "7" => walletService.AddWalletToPlayer,
-        "8" => walletService.GetWalletsOfPlayer,
-        "9" => walletService.DepositToWallet,
-        "10" => walletService.WithdrawFromWallet,
-        "11" => walletService.BlockWallet,
-        "12" => walletService.UnblockWallet,
-        "13" => walletService.UpdateWalletBalance,
-        "14" => walletService.ApplyFundsStrategy,
+        "1" => playerMenu.AddPlayer,
+        "2" => playerMenu.ListPlayers,
+        "3" => playerMenu.ListPlayersByScore,
+        "4" => playerMenu.FindPlayerByName,
+        "5" => playerMenu.FindPlayerById,
+        "6" => playerMenu.DeletePlayer,
+        "7" => walletMenu.AddWalletToPlayer,
+        "8" => walletMenu.GetWalletsOfPlayer,
+        "9" => walletMenu.DepositToWallet,
+        "10" => walletMenu.WithdrawFromWallet,
+        "11" => walletMenu.BlockWallet,
+        "12" => walletMenu.UnblockWallet,
+        "13" => walletMenu.UpdateWalletBalance,
+        "14" => walletMenu.ApplyFundsStrategy,
         "0" => null,
         _ => () => Console.WriteLine("Unknown option.")
     };

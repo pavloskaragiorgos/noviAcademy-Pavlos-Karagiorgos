@@ -2,10 +2,8 @@
 using Microsoft.Extensions.Logging;
 using NLog.Extensions.Logging;
 using WorldRank.Application;
+using WorldRank.Console.Services;
 using WorldRank.Infrastructure;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace WorldRank.Console
 {
@@ -23,6 +21,10 @@ namespace WorldRank.Console
             );
             services.AddApplication();
             services.AddInfrastructure();
+
+            // Console presentation layer (menu classes handle I/O, not the Application services).
+            services.AddSingleton<PlayerMenu>();
+            services.AddSingleton<WalletMenu>();
 
             return services;
         }

@@ -1,50 +1,50 @@
 ﻿using WorldRank.Application.Strategies;
 using WorldRank.Domain.Enums;
 
-namespace WorldRank.Application.Services;
+namespace WorldRank.Console.Services;
 
 // helpers for reading and validating user input.
 public static class Prompts
 {
     public static int? PromptPlayerId()
     {
-        Console.Write("Give player id: ");
-        if (int.TryParse(Console.ReadLine(), out var playerId))
+        System.Console.Write("Give player id: ");
+        if (int.TryParse(System.Console.ReadLine(), out var playerId))
             return playerId;
 
-        Console.WriteLine("Player id must be a whole number.");
+        System.Console.WriteLine("Player id must be a whole number.");
         return null;
     }
 
     public static Currency? PromptCurrency()
     {
-        Console.Write("Give Currency: 1 - EUR | 2 - USD\n");
-        switch (Console.ReadLine())
+        System.Console.Write("Give Currency: 1 - EUR | 2 - USD\n");
+        switch (System.Console.ReadLine())
         {
             case "1":
                 return Currency.EUR;
             case "2":
                 return Currency.USD;
             default:
-                Console.WriteLine("Unknown currency.");
+                System.Console.WriteLine("Unknown currency.");
                 return null;
         }
     }
 
     public static decimal? PromptAmount(string label)
     {
-        Console.Write($"{label}: ");
-        if (decimal.TryParse(Console.ReadLine(), out var amount))
+        System.Console.Write($"{label}: ");
+        if (decimal.TryParse(System.Console.ReadLine(), out var amount))
             return amount;
 
-        Console.WriteLine("Amount must be a number.");
+        System.Console.WriteLine("Amount must be a number.");
         return null;
     }
 
     public static FundsOperation? PromptFundsOperation()
     {
-        Console.Write("Operation: 1 - Add | 2 - Subtract | 3 - Force subtract \n");
-        switch (Console.ReadLine())
+        System.Console.Write("Operation: 1 - Add | 2 - Subtract | 3 - Force subtract \n");
+        switch (System.Console.ReadLine())
         {
             case "1":
                 return FundsOperation.Add;
@@ -53,7 +53,7 @@ public static class Prompts
             case "3":
                 return FundsOperation.ForceSubtract;
             default:
-                Console.WriteLine("Unknown operation.");
+                System.Console.WriteLine("Unknown operation.");
                 return null;
         }
     }
