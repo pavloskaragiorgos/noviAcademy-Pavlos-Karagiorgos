@@ -7,7 +7,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Reuses the same Application/Infrastructure DI wiring as the Console app
 // (in-memory repositories for now — swap for DB-backed ones later without touching this file).
 builder.Services.AddApplication();
-builder.Services.AddInfrastructure();
+builder.Services.AddInfrastructure(
+    useDatabase: true,
+    connectionString: builder.Configuration.GetConnectionString("WorldRank"));
 
 builder.Services.AddMemoryCache();
 
