@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using WorldRank.Api.Dtos;
 using WorldRank.Application.Services;
 using WorldRank.Domain.Entities;
 using AppPlayerService = WorldRank.Application.Services.PlayerService;
@@ -14,6 +15,20 @@ namespace WorldRank.Api.Controllers
         public PlayersController(AppPlayerService playerService)
         {
             _playerService = playerService;
+        }
+
+        [HttpPost]
+        public IActionResult CreatePlayer([FromBody] CreatePlayerRequest request)
+        {
+            try
+            {
+                var player = _playerService.AddPlayer(request.Name, request.Score);
+                return CreatedAtAction(nameof(GetPlayerById), new { playerId = player.Id }, player);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpGet]

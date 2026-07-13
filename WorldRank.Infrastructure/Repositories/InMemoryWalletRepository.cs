@@ -40,7 +40,12 @@ namespace WorldRank.Infrastructure.Repositories
 			return _wallets.Where(item => item.PlayerId == playerId).ToList();
 		}
 
-		public void UpdateBalance(int playerId, Currency currency, decimal newBalance)
+        public Wallet? GetWalletById(int walletId)
+        {
+            return _wallets.FirstOrDefault(item => item.Id == walletId);
+        }
+
+        public void UpdateBalance(int playerId, Currency currency, decimal newBalance)
 		{
 			GetWallet(playerId, currency).SetBalance(newBalance);
 			_logger.LogInformation("Player {PlayerId} {Currency} wallet balance set to {Balance}", playerId, currency, newBalance);

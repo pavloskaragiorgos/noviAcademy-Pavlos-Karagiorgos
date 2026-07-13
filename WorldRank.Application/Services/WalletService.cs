@@ -28,13 +28,19 @@ public class WalletService
         _fundsStrategies = strategies.ToDictionary(strategy => strategy.Operation);
     }
 
-    public void AddWalletToPlayer(int playerId, Currency currency, decimal balance)
+    public Wallet AddWalletToPlayer(int playerId, Currency currency, decimal balance)
     {
         if (_playerRepository.FindPlayer(playerId) is null)
             throw new PlayerNotFoundException(playerId);
 
         var wallet = new Wallet(GenerateWalletId(), playerId, currency, balance);
         _walletRepository.Add(wallet);
+        return wallet;
+    }
+
+    public Wallet? GetWalletById(int walletId)
+    {
+        return _walletRepository.GetWalletById(walletId);
     }
 
     public List<Wallet> GetWalletsOfPlayer(int playerId)

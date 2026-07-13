@@ -43,6 +43,11 @@ public class DBWalletRepository : IWalletRepository
         return _context.Wallets.AsNoTracking().Where(item => item.PlayerId == playerId).ToList();
     }
 
+    public Wallet? GetWalletById(int walletId)
+    {
+        return _context.Wallets.AsNoTracking().FirstOrDefault(item => item.Id == walletId);
+    }
+
     public void UpdateBalance(int playerId, Currency currency, decimal newBalance)
     {
         var wallet = GetTrackedWallet(playerId, currency);

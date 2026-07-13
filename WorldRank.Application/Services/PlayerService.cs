@@ -18,11 +18,12 @@ public class PlayerService
         _logger = logger;
     }
 
-    public void AddPlayer(string name, int score)
+    public Player AddPlayer(string name, int score)
     {
         var player = new Player(GeneratePlayerId(), name);
         player.AddScore(score);
         _playerRepository.AddPlayer(player);
+        return player;
     }
 
     public List<Player> ListPlayers()
