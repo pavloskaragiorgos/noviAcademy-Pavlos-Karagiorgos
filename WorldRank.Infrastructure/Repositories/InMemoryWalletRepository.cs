@@ -1,8 +1,9 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using WorldRank.Application.Interfaces;
+using WorldRank.Domain.Entities;
 using WorldRank.Domain.Enums;
 using WorldRank.Domain.Exceptions;
-using WorldRank.Domain.Entities;
-using WorldRank.Application.Interfaces;
-using Microsoft.Extensions.Logging;
 
 namespace WorldRank.Infrastructure.Repositories
 {
@@ -88,5 +89,7 @@ namespace WorldRank.Infrastructure.Repositories
 
 			return wallet;
 		}
-	}
+
+		public void SaveChanges() { }
+    }
 }

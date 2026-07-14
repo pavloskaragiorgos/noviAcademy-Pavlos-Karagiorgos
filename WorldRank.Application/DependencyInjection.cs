@@ -8,9 +8,6 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
-        // Backs PlayerService's ListPlayers() cache.
-        services.AddMemoryCache();
-
         // All strategies are registered under the same interface. The caller resolves
         // them as a collection and picks the one whose Operation matches - no factory.
         services.AddSingleton<IFundsStrategy, AddFundsStrategy>();

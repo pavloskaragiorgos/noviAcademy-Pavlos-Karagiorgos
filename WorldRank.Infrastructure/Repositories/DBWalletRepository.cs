@@ -107,4 +107,6 @@ public class DBWalletRepository : IWalletRepository
 
         return wallet;
     }
+
+    public void SaveChanges() => _context.SaveChanges();
 }

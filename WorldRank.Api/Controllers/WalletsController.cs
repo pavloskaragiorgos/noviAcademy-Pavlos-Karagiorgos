@@ -10,10 +10,12 @@ namespace WorldRank.Api.Controllers
     public class WalletsController : ControllerBase
     {
         private readonly AppWalletService _walletService;
+        private readonly ILogger _logger;
 
-        public WalletsController(AppWalletService walletService)
+        public WalletsController(AppWalletService walletService, ILogger<WalletsController> logger)
         {
             _walletService = walletService;
+            _logger = logger;
         }
 
         [HttpPost]
@@ -31,6 +33,11 @@ namespace WorldRank.Api.Controllers
             catch (WalletException ex)
             {
                 return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error creating wallet");
+                return StatusCode(500, "An unexpected error occurred.");
             }
         }
 
@@ -56,6 +63,11 @@ namespace WorldRank.Api.Controllers
             catch (WalletException ex)
             {
                 return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error creating wallet");
+                return StatusCode(500, "An unexpected error occurred.");
             }
 
             return Ok(_walletService.GetWalletById(id));

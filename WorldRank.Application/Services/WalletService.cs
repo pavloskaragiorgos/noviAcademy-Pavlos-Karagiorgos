@@ -97,6 +97,7 @@ public class WalletService
         {
             var wallet = _walletRepository.GetWallet(playerId, currency);
             strategy.Execute(wallet, amount);
+            _walletRepository.SaveChanges();
             _logger.LogInformation("Applied {Strategy} of {Amount} to player {PlayerId} {Currency} wallet (balance {Balance})",
                 strategy.GetType().Name, amount, playerId, currency, wallet.Balance);
         });

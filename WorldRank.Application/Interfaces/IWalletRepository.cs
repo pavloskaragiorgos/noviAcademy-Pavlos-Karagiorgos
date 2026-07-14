@@ -20,5 +20,9 @@ namespace WorldRank.Application.Interfaces
 		void Block(int playerId, Currency currency);
 
 		void Unblock(int playerId, Currency currency);
-	}
+
+        // Commit pending changes (Unit of Work). Used by WalletService.ApplyFundsStrategy,
+        // which mutates a wallet via a strategy and needs an explicit save.
+        void SaveChanges();
+    }
 }
