@@ -11,58 +11,62 @@ namespace WorldRank.Api.Controllers
     public class PlayersController : ControllerBase
     {
         private readonly AppPlayerService _playerService;
+        private readonly ILogger<PlayersController> _logger;
 
-        public PlayersController(AppPlayerService playerService)
+        public PlayersController(AppPlayerService playerService, ILogger<PlayersController> logger)
         {
             _playerService = playerService;
+            _logger = logger;
         }
 
         [HttpPost]
-        public IActionResult CreatePlayer([FromBody] CreatePlayerRequest request)
+        public async Task<IActionResult> CreatePlayer([FromBody] CreatePlayerRequest request, CancellationToken cancellationToken)
         {
             try
             {
-                var player = _playerService.AddPlayer(request.Name, request.Score);
+                var player = await _playerService.AddPlayerAsync(request.Name, request.Score, cancellationToken);
                 return CreatedAtAction(nameof(GetPlayerById), new { playerId = player.Id }, player);
             }
             catch (ArgumentException ex)
             {
                 return BadRequest(ex.Message);
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error creating player");
+                return StatusCode(500, "An unexpected error occurred.");
+            }
         }
 
         [HttpGet]
-        public IActionResult ListPlayers()
+        public async Task<IActionResult> ListPlayers(CancellationToken cancellationToken)
         {
             try
             {
-                var result = _playerService.ListPlayers();
-                if (result == null) return NotFound();
-
+                var result = await _playerService.ListPlayersAsync(cancellationToken);
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                // Log the exception (ex) here if needed
-                return StatusCode(500, ex.Message);
+                _logger.LogError(ex, "Unexpected error listing players");
+                return StatusCode(500, "An unexpected error occurred.");
             }
         }
 
         [HttpGet("{playerId:int}")]
-        public async Task<IActionResult> GetPlayerById(int playerId)
+        public async Task<IActionResult> GetPlayerById(int playerId, CancellationToken cancellationToken)
         {
             try
             {
-                var player = _playerService.FindPlayerById(playerId);
+                var player = await _playerService.FindPlayerByIdAsync(playerId, cancellationToken);
                 if (player == null) return NotFound();
                 return Ok(player);
             }
             catch (Exception ex)
             {
-                // Log the exception (ex) here if needed
-                return StatusCode(500, ex.Message);
+                _logger.LogError(ex, "Unexpected error fetching player {PlayerId}", playerId);
+                return StatusCode(500, "An unexpected error occurred.");
             }
         }
-
     }
 }

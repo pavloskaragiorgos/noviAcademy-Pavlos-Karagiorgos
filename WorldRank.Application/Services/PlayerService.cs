@@ -22,20 +22,20 @@ public class PlayerService
     private static string PlayerKey(int id) => $"player:{id}";
     private const string AllPlayersKey = "players:all";
 
-    public Player AddPlayer(string name, int score)
+    public async Task<Player> AddPlayerAsync(string name, int score, CancellationToken cancellationToken = default)
     {
-        var player = new Player(GeneratePlayerId(), name);
+        var player = new Player(await GeneratePlayerIdAsync(cancellationToken), name);
         player.AddScore(score);
-        _playerRepository.AddPlayer(player);
+        await _playerRepository.AddPlayerAsync(player, cancellationToken);
         _logger.LogInformation("Player created {PlayerId} {Name} (score {Score})", player.Id, name, score);
 
-        _cache.Set(PlayerKey(player.Id), player, Ttl);   // write-through
-        _cache.Remove(AllPlayersKey);                     // invalidate the list
+        _cache.Set(PlayerKey(player.Id), player, Ttl);
+        _cache.Remove(AllPlayersKey);
         _logger.LogInformation("Cache write-through player {PlayerId}; list cache invalidated", player.Id);
         return player;
     }
 
-    public List<Player> ListPlayers()
+    public async Task<List<Player>> ListPlayersAsync(CancellationToken cancellationToken = default)
     {
         if (_cache.TryGet(AllPlayersKey, out List<Player>? cached) && cached is not null)
         {
@@ -44,28 +44,26 @@ public class PlayerService
         }
 
         _logger.LogInformation("Cache MISS all players — loading from database");
-        var players = _playerRepository.GetAllPlayers().ToList();
+        var players = (await _playerRepository.GetAllPlayersAsync(cancellationToken)).ToList();
         _cache.Set(AllPlayersKey, players, Ttl);
         return players;
     }
 
-    public List<IGrouping<int, Player>> ListPlayersByScore()
+    public async Task<List<IGrouping<int, Player>>> ListPlayersByScoreAsync(CancellationToken cancellationToken = default)
     {
-        // Use the cached list of players to group by score and order by score descending
-        return ListPlayers()
+        return (await ListPlayersAsync(cancellationToken))
             .GroupBy(p => p.Score)
             .OrderByDescending(g => g.Key)
             .ToList();
     }
 
-    public Player? FindPlayerByName(string name)
+    public async Task<Player?> FindPlayerByNameAsync(string name, CancellationToken cancellationToken = default)
     {
-        //Use the cached list of players to find a player by name 
-        return ListPlayers()
+        return (await ListPlayersAsync(cancellationToken))
             .FirstOrDefault(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
     }
 
-    public Player? FindPlayerById(int playerId)
+    public async Task<Player?> FindPlayerByIdAsync(int playerId, CancellationToken cancellationToken = default)
     {
         if (_cache.TryGet(PlayerKey(playerId), out Player? cached) && cached is not null)
         {
@@ -74,22 +72,22 @@ public class PlayerService
         }
 
         _logger.LogInformation("Cache MISS player {PlayerId} — loading from database", playerId);
-        var player = _playerRepository.FindPlayer(playerId);
+        var player = await _playerRepository.FindPlayerAsync(playerId, cancellationToken);
         if (player is not null)
             _cache.Set(PlayerKey(playerId), player, Ttl);
         return player;
     }
 
-    public void DeletePlayer(int playerId)
+    public async Task DeletePlayerAsync(int playerId, CancellationToken cancellationToken = default)
     {
-        _playerRepository.DeletePlayer(playerId);
+        await _playerRepository.DeletePlayerAsync(playerId, cancellationToken);
         _cache.Remove(PlayerKey(playerId));
         _cache.Remove(AllPlayersKey);
     }
 
-    private int GeneratePlayerId()
+    private async Task<int> GeneratePlayerIdAsync(CancellationToken cancellationToken)
     {
-        var existingIds = _playerRepository.GetAllPlayers().Select(p => p.Id).ToHashSet();
+        var existingIds = (await _playerRepository.GetAllPlayersAsync(cancellationToken)).Select(p => p.Id).ToHashSet();
 
         int id;
         do

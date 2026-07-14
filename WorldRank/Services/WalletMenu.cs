@@ -29,7 +29,7 @@ namespace WorldRank.Console.Services
 
             try
             {
-                _walletService.AddWalletToPlayer(playerId.Value, currency.Value, balance.Value);
+                _walletService.AddWalletToPlayerAsync(playerId.Value, currency.Value, balance.Value).GetAwaiter().GetResult();
                 System.Console.WriteLine("Wallet added successfully.");
             }
             catch (PlayerNotFoundException ex)
@@ -48,7 +48,7 @@ namespace WorldRank.Console.Services
             if (playerId is null)
                 return;
 
-            var wallets = _walletService.GetWalletsOfPlayer(playerId.Value);
+            var wallets = _walletService.GetWalletsOfPlayerAsync(playerId.Value).GetAwaiter().GetResult();
 
             if (wallets.Count == 0)
             {
@@ -76,7 +76,7 @@ namespace WorldRank.Console.Services
 
             try
             {
-                _walletService.DepositToWallet(playerId.Value, currency.Value, amount.Value);
+                _walletService.DepositToWalletAsync(playerId.Value, currency.Value, amount.Value).GetAwaiter().GetResult();
                 System.Console.WriteLine("Deposit successful.");
             }
             catch (WalletException ex)

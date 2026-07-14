@@ -1,28 +1,23 @@
 using WorldRank.Domain.Enums;
 using WorldRank.Domain.Entities;
 
-namespace WorldRank.Application.Interfaces
+namespace WorldRank.Application.Interfaces;
+
+public interface IWalletRepository
 {
-	public interface IWalletRepository
-	{
-		void Add(Wallet wallet);
-		Wallet[] GetAll();
-		Wallet GetWallet(int playerId, Currency currency);
-        Wallet? GetWalletById(int walletId);
-        List<Wallet> GetAllWalletsByPlayerId(int playerId);
+    Task AddAsync(Wallet wallet, CancellationToken cancellationToken = default);
+    Task<Wallet[]> GetAllAsync(CancellationToken cancellationToken = default);
+    Task<Wallet> GetWalletAsync(int playerId, Currency currency, CancellationToken cancellationToken = default);
+    Task<Wallet?> GetWalletByIdAsync(int walletId, CancellationToken cancellationToken = default);
+    Task<List<Wallet>> GetAllWalletsByPlayerIdAsync(int playerId, CancellationToken cancellationToken = default);
 
-		void UpdateBalance(int playerId, Currency currency, decimal newBalance);
+    Task UpdateBalanceAsync(int playerId, Currency currency, decimal newBalance, CancellationToken cancellationToken = default);
+    Task DepositAsync(int playerId, Currency currency, decimal amount, CancellationToken cancellationToken = default);
+    Task WithdrawAsync(int playerId, Currency currency, decimal amount, CancellationToken cancellationToken = default);
+    Task BlockAsync(int playerId, Currency currency, CancellationToken cancellationToken = default);
+    Task UnblockAsync(int playerId, Currency currency, CancellationToken cancellationToken = default);
 
-		void Deposit(int playerId, Currency currency, decimal amount);
-
-		void Withdraw(int playerId, Currency currency, decimal amount);
-
-		void Block(int playerId, Currency currency);
-
-		void Unblock(int playerId, Currency currency);
-
-        // Commit pending changes (Unit of Work). Used by WalletService.ApplyFundsStrategy,
-        // which mutates a wallet via a strategy and needs an explicit save.
-        void SaveChanges();
-    }
+    // Commit pending changes (Unit of Work). Used by WalletService.ApplyFundsStrategyAsync,
+    // which mutates a wallet via a strategy and needs an explicit save.
+    Task SaveChangesAsync(CancellationToken cancellationToken = default);
 }

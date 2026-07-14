@@ -10,7 +10,7 @@ namespace WorldRank.Api.Controllers
     public class WalletsController : ControllerBase
     {
         private readonly AppWalletService _walletService;
-        private readonly ILogger _logger;
+        private readonly ILogger<WalletsController> _logger;
 
         public WalletsController(AppWalletService walletService, ILogger<WalletsController> logger)
         {
@@ -19,11 +19,11 @@ namespace WorldRank.Api.Controllers
         }
 
         [HttpPost]
-        public IActionResult CreateWallet([FromBody] CreateWalletRequest request)
+        public async Task<IActionResult> CreateWallet([FromBody] CreateWalletRequest request, CancellationToken cancellationToken)
         {
             try
             {
-                var wallet = _walletService.AddWalletToPlayer(request.PlayerId, request.Currency, request.Balance);
+                var wallet = await _walletService.AddWalletToPlayerAsync(request.PlayerId, request.Currency, request.Balance, cancellationToken);
                 return CreatedAtAction(nameof(GetWalletById), new { id = wallet.Id }, wallet);
             }
             catch (PlayerNotFoundException ex)
@@ -42,23 +42,23 @@ namespace WorldRank.Api.Controllers
         }
 
         [HttpGet("{id:int}")]
-        public IActionResult GetWalletById(int id)
+        public async Task<IActionResult> GetWalletById(int id, CancellationToken cancellationToken)
         {
-            var wallet = _walletService.GetWalletById(id);
+            var wallet = await _walletService.GetWalletByIdAsync(id, cancellationToken);
             if (wallet is null) return NotFound();
 
             return Ok(wallet);
         }
 
         [HttpPost("{id:int}/deposit")]
-        public IActionResult Deposit(int id, [FromBody] DepositRequest request)
+        public async Task<IActionResult> Deposit(int id, [FromBody] DepositRequest request, CancellationToken cancellationToken)
         {
-            var wallet = _walletService.GetWalletById(id);
+            var wallet = await _walletService.GetWalletByIdAsync(id, cancellationToken);
             if (wallet is null) return NotFound();
 
             try
             {
-                _walletService.DepositToWallet(wallet.PlayerId, wallet.Currency, request.Amount);
+                await _walletService.DepositToWalletAsync(wallet.PlayerId, wallet.Currency, request.Amount, cancellationToken);
             }
             catch (WalletException ex)
             {
@@ -66,11 +66,11 @@ namespace WorldRank.Api.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected error creating wallet");
+                _logger.LogError(ex, "Unexpected error depositing to wallet {WalletId}", id);
                 return StatusCode(500, "An unexpected error occurred.");
             }
 
-            return Ok(_walletService.GetWalletById(id));
+            return Ok(await _walletService.GetWalletByIdAsync(id, cancellationToken));
         }
     }
 }
