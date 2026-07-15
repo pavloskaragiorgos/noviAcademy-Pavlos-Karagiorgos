@@ -30,13 +30,13 @@ namespace WorldRank.Console.Services
                 return;
             }
 
-            _playerService.AddPlayer(name, score);
+            _playerService.AddPlayerAsync(name, score).GetAwaiter().GetResult();
             System.Console.WriteLine("Player added successfully.");
         }
 
         public void ListPlayers()
         {
-            var all = _playerService.ListPlayers();
+            var all = _playerService.ListPlayersAsync().GetAwaiter().GetResult();
 
             if (all.Count == 0)
             {
@@ -50,7 +50,7 @@ namespace WorldRank.Console.Services
 
         public void ListPlayersByScore()
         {
-            var groups = _playerService.ListPlayersByScore();
+            var groups = _playerService.ListPlayersByScoreAsync().GetAwaiter().GetResult();
 
             if (groups.Count == 0)
             {
@@ -71,7 +71,7 @@ namespace WorldRank.Console.Services
             System.Console.Write("Search by name: ");
             var term = System.Console.ReadLine() ?? string.Empty;
 
-            var player = _playerService.FindPlayerByName(term);
+            var player = _playerService.FindPlayerByNameAsync(term).GetAwaiter().GetResult();
 
             System.Console.WriteLine(player is null ? "No player found." : player.ToString());
         }
@@ -82,7 +82,7 @@ namespace WorldRank.Console.Services
             if (playerId is null)
                 return;
 
-            var player = _playerService.FindPlayerById(playerId.Value);
+            var player = _playerService.FindPlayerByIdAsync(playerId.Value).GetAwaiter().GetResult();
 
             System.Console.WriteLine(player is null ? "No player found." : player.ToString());
         }
@@ -93,7 +93,7 @@ namespace WorldRank.Console.Services
             if (playerId is null)
                 return;
 
-            _playerService.DeletePlayer(playerId.Value);
+            _playerService.DeletePlayerAsync(playerId.Value).GetAwaiter().GetResult();
             System.Console.WriteLine("Player deleted (if it existed).");
         }
 

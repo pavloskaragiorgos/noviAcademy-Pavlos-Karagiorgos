@@ -9,8 +9,11 @@ namespace WorldRank.Application.Services;
 
 public class WalletService
 {
+    private static readonly TimeSpan Ttl = TimeSpan.FromSeconds(60);
+
     private readonly IWalletRepository _walletRepository;
     private readonly IPlayerRepository _playerRepository;
+    private readonly ICache _cache;
     private readonly ILogger<WalletService> _logger;
     private readonly IReadOnlyDictionary<FundsOperation, IFundsStrategy> _fundsStrategies;
 
@@ -18,90 +21,134 @@ public class WalletService
         IWalletRepository walletRepository,
         IPlayerRepository playerRepository,
         IEnumerable<IFundsStrategy> strategies,
+        ICache cache,
         ILogger<WalletService> logger)
     {
         _walletRepository = walletRepository;
         _playerRepository = playerRepository;
+        _cache = cache;
         _logger = logger;
-
-        // Index every registered strategy by the operation it implements.
         _fundsStrategies = strategies.ToDictionary(strategy => strategy.Operation);
     }
 
-    public void AddWalletToPlayer(int playerId, Currency currency, decimal balance)
+    private static string WalletKey(int walletId) => $"wallet:{walletId}";
+    private static string PlayerWalletsKey(int playerId) => $"wallets:player:{playerId}";
+
+    public async Task<Wallet> AddWalletToPlayerAsync(int playerId, Currency currency, decimal balance, CancellationToken cancellationToken = default)
     {
-        if (_playerRepository.FindPlayer(playerId) is null)
+        if (await _playerRepository.FindPlayerAsync(playerId, cancellationToken) is null)
             throw new PlayerNotFoundException(playerId);
 
-        var wallet = new Wallet(GenerateWalletId(), playerId, currency, balance);
-        _walletRepository.Add(wallet);
+        var wallet = new Wallet(await GenerateWalletIdAsync(cancellationToken), playerId, currency, balance);
+        await _walletRepository.AddAsync(wallet, cancellationToken);
+        _logger.LogInformation("Wallet created {WalletId} for player {PlayerId} in {Currency}", wallet.Id, playerId, currency);
+        Refresh(wallet);
+        return wallet;
     }
 
-    public List<Wallet> GetWalletsOfPlayer(int playerId)
+    public async Task<Wallet?> GetWalletByIdAsync(int walletId, CancellationToken cancellationToken = default)
     {
-        return _walletRepository.GetAllWalletsByPlayerId(playerId);
-    }
-
-    public void DepositToWallet(int playerId, Currency currency, decimal amount)
-    {
-        RunWalletOperation(() =>
+        if (_cache.TryGet(WalletKey(walletId), out Wallet? cached) && cached is not null)
         {
-            _walletRepository.Deposit(playerId, currency, amount);
+            _logger.LogInformation("Cache HIT  wallet {WalletId}", walletId);
+            return cached;
+        }
+
+        _logger.LogInformation("Cache MISS wallet {WalletId} — loading from database", walletId);
+        var wallet = await _walletRepository.GetWalletByIdAsync(walletId, cancellationToken);
+        if (wallet is not null)
+            _cache.Set(WalletKey(walletId), wallet, Ttl);
+        return wallet;
+    }
+
+    public async Task<List<Wallet>> GetWalletsOfPlayerAsync(int playerId, CancellationToken cancellationToken = default)
+    {
+        var key = PlayerWalletsKey(playerId);
+
+        if (_cache.TryGet(key, out List<Wallet>? cached) && cached is not null)
+        {
+            _logger.LogInformation("Cache HIT  wallets of player {PlayerId}", playerId);
+            return cached;
+        }
+
+        _logger.LogInformation("Cache MISS wallets of player {PlayerId} — loading from database", playerId);
+        var wallets = await _walletRepository.GetAllWalletsByPlayerIdAsync(playerId, cancellationToken);
+        _cache.Set(key, wallets, Ttl);
+        return wallets;
+    }
+
+    public async Task DepositToWalletAsync(int playerId, Currency currency, decimal amount, CancellationToken cancellationToken = default)
+    {
+        await RunWalletOperationAsync(async () =>
+        {
+            await _walletRepository.DepositAsync(playerId, currency, amount, cancellationToken);
+            Refresh(await _walletRepository.GetWalletAsync(playerId, currency, cancellationToken));
         });
     }
 
-    public void WithdrawFromWallet(int playerId, Currency currency, decimal amount)
+    public async Task WithdrawFromWalletAsync(int playerId, Currency currency, decimal amount, CancellationToken cancellationToken = default)
     {
-        RunWalletOperation(() =>
+        await RunWalletOperationAsync(async () =>
         {
-            _walletRepository.Withdraw(playerId, currency, amount);
+            await _walletRepository.WithdrawAsync(playerId, currency, amount, cancellationToken);
+            Refresh(await _walletRepository.GetWalletAsync(playerId, currency, cancellationToken));
         });
     }
 
-    public void BlockWallet(int playerId, Currency currency)
+    public async Task BlockWalletAsync(int playerId, Currency currency, CancellationToken cancellationToken = default)
     {
-        RunWalletOperation(() =>
+        await RunWalletOperationAsync(async () =>
         {
-            _walletRepository.Block(playerId, currency);
+            await _walletRepository.BlockAsync(playerId, currency, cancellationToken);
+            Refresh(await _walletRepository.GetWalletAsync(playerId, currency, cancellationToken));
         });
     }
 
-    public void UnblockWallet(int playerId, Currency currency)
+    public async Task UnblockWalletAsync(int playerId, Currency currency, CancellationToken cancellationToken = default)
     {
-        RunWalletOperation(() =>
+        await RunWalletOperationAsync(async () =>
         {
-            _walletRepository.Unblock(playerId, currency);
+            await _walletRepository.UnblockAsync(playerId, currency, cancellationToken);
+            Refresh(await _walletRepository.GetWalletAsync(playerId, currency, cancellationToken));
         });
     }
 
-    public void UpdateWalletBalance(int playerId, Currency currency, decimal newBalance)
+    public async Task UpdateWalletBalanceAsync(int playerId, Currency currency, decimal newBalance, CancellationToken cancellationToken = default)
     {
-        RunWalletOperation(() =>
+        await RunWalletOperationAsync(async () =>
         {
-            _walletRepository.UpdateBalance(playerId, currency, newBalance);
+            await _walletRepository.UpdateBalanceAsync(playerId, currency, newBalance, cancellationToken);
+            Refresh(await _walletRepository.GetWalletAsync(playerId, currency, cancellationToken));
         });
     }
 
-    public void ApplyFundsStrategy(int playerId, Currency currency, FundsOperation operation ,decimal amount)
+    public async Task ApplyFundsStrategyAsync(int playerId, Currency currency, FundsOperation operation, decimal amount, CancellationToken cancellationToken = default)
     {
-        // Pick the strategy that matches the chosen operation (resolved from DI, no factory).
         var strategy = _fundsStrategies[operation];
 
-        RunWalletOperation(() =>
+        await RunWalletOperationAsync(async () =>
         {
-            var wallet = _walletRepository.GetWallet(playerId, currency);
+            var wallet = await _walletRepository.GetWalletAsync(playerId, currency, cancellationToken);
             strategy.Execute(wallet, amount);
+            await _walletRepository.SaveChangesAsync(cancellationToken);
             _logger.LogInformation("Applied {Strategy} of {Amount} to player {PlayerId} {Currency} wallet (balance {Balance})",
                 strategy.GetType().Name, amount, playerId, currency, wallet.Balance);
+            Refresh(wallet);
         });
     }
 
-    // Runs a wallet operation, logs any domain (WalletException) failure, then lets it propagate to the caller.
-    private void RunWalletOperation(Action operation)
+    private void Refresh(Wallet wallet)
+    {
+        _cache.Set(WalletKey(wallet.Id), wallet, Ttl);
+        _cache.Remove(PlayerWalletsKey(wallet.PlayerId));
+        _logger.LogInformation("Cache write-through wallet {WalletId}; list cache invalidated", wallet.Id);
+    }
+
+    private async Task RunWalletOperationAsync(Func<Task> operation)
     {
         try
         {
-            operation();
+            await operation();
         }
         catch (WalletException ex)
         {
@@ -110,9 +157,9 @@ public class WalletService
         }
     }
 
-    private int GenerateWalletId()
+    private async Task<int> GenerateWalletIdAsync(CancellationToken cancellationToken)
     {
-        var existingIds = _walletRepository.GetAll().Select(p => p.Id).ToHashSet();
+        var existingIds = (await _walletRepository.GetAllAsync(cancellationToken)).Select(p => p.Id).ToHashSet();
 
         int id;
         do
@@ -124,4 +171,3 @@ public class WalletService
         return id;
     }
 }
-

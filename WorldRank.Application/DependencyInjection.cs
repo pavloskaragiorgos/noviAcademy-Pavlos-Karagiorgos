@@ -15,8 +15,8 @@ public static class DependencyInjection
         services.AddSingleton<IFundsStrategy, ForceSubtractFundsStrategy>();
 
         // Application services that drive the menu use-cases.
-        services.AddSingleton<PlayerService>();
-        services.AddSingleton<WalletService>();
+        services.AddScoped<PlayerService>();
+        services.AddScoped<WalletService>();
 
         return services;
     }
