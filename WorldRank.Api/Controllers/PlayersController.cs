@@ -53,6 +53,38 @@ namespace WorldRank.Api.Controllers
             }
         }
 
+        [HttpGet("by-score")]
+        public async Task<IActionResult> ListPlayersByScore(CancellationToken cancellationToken)
+        {
+            try
+            {
+                var groups = await _playerService.ListPlayersByScoreAsync(cancellationToken);
+                var result = groups.Select(g => new PlayerScoreGroup(g.Key, g.ToList())).ToList();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error listing players by score");
+                return StatusCode(500, "An unexpected error occurred.");
+            }
+        }
+
+        [HttpGet("search")]
+        public async Task<IActionResult> FindPlayerByName([FromQuery] string name, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var player = await _playerService.FindPlayerByNameAsync(name, cancellationToken);
+                if (player is null) return NotFound();
+                return Ok(player);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error searching player by name {Name}", name);
+                return StatusCode(500, "An unexpected error occurred.");
+            }
+        }
+
         [HttpGet("{playerId:int}")]
         public async Task<IActionResult> GetPlayerById(int playerId, CancellationToken cancellationToken)
         {
@@ -65,6 +97,21 @@ namespace WorldRank.Api.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Unexpected error fetching player {PlayerId}", playerId);
+                return StatusCode(500, "An unexpected error occurred.");
+            }
+        }
+
+        [HttpDelete("{playerId:int}")]
+        public async Task<IActionResult> DeletePlayer(int playerId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                await _playerService.DeletePlayerAsync(playerId, cancellationToken);
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error deleting player {PlayerId}", playerId);
                 return StatusCode(500, "An unexpected error occurred.");
             }
         }
